@@ -645,10 +645,10 @@ db.collection(COLLECTION)
             const alturaNecessaria =
                 5 +
                 (linhas.length * 5) +
-                8;
+                3;
 
 
-            if (y + alturaNecessaria > 270) {
+            if (y + alturaNecessaria > 283) {
 
                 pdf.addPage();
 
@@ -713,12 +713,21 @@ db.collection(COLLECTION)
         // CABEÇALHO
         // ============================================================
 
+        const pageWidth = 210;
+        const rightEdge = 190;
+
+        const tituloAta =
+            (isTestemunho ?
+                "Ata da Reunião de Testemunho" :
+                "Ata da Reunião Sacramental") +
+            " - Ramo 5 · CTM";
+
         pdf.setFont(
             "helvetica",
             "bold"
         );
 
-        pdf.setFontSize(18);
+        pdf.setFontSize(17);
 
         pdf.setTextColor(
             31,
@@ -726,42 +735,14 @@ db.collection(COLLECTION)
             95
         );
 
-
         pdf.text(
-            "Ramo 5 · CTM",
-            margem,
-            y
+            tituloAta,
+            pageWidth / 2,
+            y,
+            { align: "center" }
         );
-
 
         y += 8;
-
-
-        pdf.setFont(
-            "helvetica",
-            "normal"
-        );
-
-        pdf.setFontSize(12);
-
-        pdf.setTextColor(
-            107,
-            104,
-            95
-        );
-
-
-        pdf.text(
-            isTestemunho ?
-            "Reunião de Testemunho" :
-            "Reunião Sacramental",
-            margem,
-            y
-        );
-
-
-        y += 7;
-
 
         pdf.setDrawColor(
             184,
@@ -771,48 +752,68 @@ db.collection(COLLECTION)
 
         pdf.setLineWidth(0.7);
 
-
         pdf.line(
             margem,
             y,
-            190,
+            rightEdge,
             y
         );
 
+        y += 12;
 
-        y += 10;
-
+        // Data — alinhada à direita: "Data:" em cinza negrito + valor em preto normal
+        const labelText = "Data: ";
+        const valueText = formatDate(entry.date);
 
         pdf.setFont(
             "helvetica",
             "bold"
         );
+        pdf.setFontSize(10);
+        const labelWidth = pdf.getTextWidth(labelText);
 
-        pdf.setFontSize(14);
+        pdf.setFont(
+            "helvetica",
+            "normal"
+        );
+        pdf.setFontSize(11);
+        const valueWidth = pdf.getTextWidth(valueText);
 
+        const startX = rightEdge - (labelWidth + valueWidth);
+
+        pdf.setFont(
+            "helvetica",
+            "bold"
+        );
+        pdf.setFontSize(10);
         pdf.setTextColor(
-            31,
-            58,
+            107,
+            104,
             95
         );
-
-
         pdf.text(
-            isTestemunho ?
-            "Ata da Reunião de Testemunho" :
-            "Ata da Reunião Sacramental",
-            margem,
+            labelText,
+            startX,
             y
         );
 
-
-        y += 8;
-
-
-        campo(
-            "Data",
-            formatDate(entry.date)
+        pdf.setFont(
+            "helvetica",
+            "normal"
         );
+        pdf.setFontSize(11);
+        pdf.setTextColor(
+            42,
+            42,
+            40
+        );
+        pdf.text(
+            valueText,
+            startX + labelWidth,
+            y
+        );
+
+        y += 4;
 
 
         // ============================================================
