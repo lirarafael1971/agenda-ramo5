@@ -580,24 +580,23 @@ db.collection(COLLECTION)
             jsPDF
         } = window.jspdf;
 
-        const pdf = new jsPDF({
-            orientation: "portrait",
-            unit: "mm",
-            format: "a4"
-        });
+        const pdf = new jsPDF();
 
-        const margem = 18;
-        const largura = 174;
-        const alturaPagina = 297;
 
-        let y = 17;
+        const margem = 20;
+
+        const largura = 170;
+
+        let y = 20;
+
 
         const isTestemunho =
             entry.tipoReuniao === 'testemunho';
 
-        // ============================================================
+
+        // ------------------------------------------------------------
         // SEÇÃO
-        // ============================================================
+        // ------------------------------------------------------------
 
         function secao(texto) {
 
@@ -608,7 +607,7 @@ db.collection(COLLECTION)
                 "bold"
             );
 
-            pdf.setFontSize(13);
+            pdf.setFontSize(12);
 
             pdf.setTextColor(
                 31,
@@ -622,50 +621,19 @@ db.collection(COLLECTION)
                 y
             );
 
-            y += 6;
+            y += 7;
 
         }
 
 
-        // ============================================================
-        // SUBSEÇÃO
-        // ============================================================
-
-        function subsecao(texto) {
-
-            y += 2;
-
-            pdf.setFont(
-                "helvetica",
-                "bold"
-            );
-
-            pdf.setFontSize(10.5);
-
-            pdf.setTextColor(
-                107,
-                104,
-                95
-            );
-
-            pdf.text(
-                texto,
-                margem,
-                y
-            );
-
-            y += 5;
-
-        }
-
-
-        // ============================================================
+        // ------------------------------------------------------------
         // CAMPO
-        // ============================================================
+        // ------------------------------------------------------------
 
         function campo(label, valor) {
 
             if (!valor) return;
+
 
             const linhas =
                 pdf.splitTextToSize(
@@ -674,12 +642,27 @@ db.collection(COLLECTION)
                 );
 
 
+            const alturaNecessaria =
+                5 +
+                (linhas.length * 5) +
+                3;
+
+
+            if (y + alturaNecessaria > 283) {
+
+                pdf.addPage();
+
+                y = 20;
+
+            }
+
+
             pdf.setFont(
                 "helvetica",
                 "bold"
             );
 
-            pdf.setFontSize(9);
+            pdf.setFontSize(10);
 
             pdf.setTextColor(
                 107,
@@ -687,13 +670,15 @@ db.collection(COLLECTION)
                 95
             );
 
+
             pdf.text(
                 label,
                 margem,
                 y
             );
 
-            y += 4.2;
+
+            y += 5;
 
 
             pdf.setFont(
@@ -701,7 +686,7 @@ db.collection(COLLECTION)
                 "normal"
             );
 
-            pdf.setFontSize(10.5);
+            pdf.setFontSize(11);
 
             pdf.setTextColor(
                 42,
@@ -709,15 +694,17 @@ db.collection(COLLECTION)
                 40
             );
 
+
             pdf.text(
                 linhas,
                 margem,
                 y
             );
 
+
             y +=
-                linhas.length * 4.4 +
-                2.5;
+                linhas.length * 5 +
+                3;
 
         }
 
@@ -726,12 +713,21 @@ db.collection(COLLECTION)
         // CABEÇALHO
         // ============================================================
 
+        const pageWidth = 210;
+        const rightEdge = 190;
+
+        const tituloAta =
+            (isTestemunho ?
+                "Ata da Reunião de Testemunho" :
+                "Ata da Reunião Sacramental") +
+            " - Ramo 5 · CTM";
+
         pdf.setFont(
             "helvetica",
             "bold"
         );
 
-        pdf.setFontSize(20);
+        pdf.setFontSize(17);
 
         pdf.setTextColor(
             31,
@@ -740,41 +736,13 @@ db.collection(COLLECTION)
         );
 
         pdf.text(
-            "Ramo 5 · CTM",
-            margem,
-            y
+            tituloAta,
+            pageWidth / 2,
+            y,
+            { align: "center" }
         );
 
-        y += 7;
-
-
-        pdf.setFont(
-            "helvetica",
-            "normal"
-        );
-
-        pdf.setFontSize(12);
-
-        pdf.setTextColor(
-            107,
-            104,
-            95
-        );
-
-        pdf.text(
-            isTestemunho ?
-            "Reunião de Testemunho" :
-            "Reunião Sacramental",
-            margem,
-            y
-        );
-
-        y += 5;
-
-
-        // ============================================================
-        // LINHA DOURADA
-        // ============================================================
+        y += 8;
 
         pdf.setDrawColor(
             184,
@@ -782,54 +750,70 @@ db.collection(COLLECTION)
             63
         );
 
-        pdf.setLineWidth(0.8);
+        pdf.setLineWidth(0.7);
 
         pdf.line(
             margem,
             y,
-            192,
+            rightEdge,
             y
         );
 
-        y += 8;
+        y += 12;
 
-
-        // ============================================================
-        // TÍTULO DA ATA
-        // ============================================================
+        // Data — alinhada à direita: "Data:" em cinza negrito + valor em preto normal
+        const labelText = "Data: ";
+        const valueText = formatDate(entry.date);
 
         pdf.setFont(
             "helvetica",
             "bold"
         );
+        pdf.setFontSize(10);
+        const labelWidth = pdf.getTextWidth(labelText);
 
-        pdf.setFontSize(15);
+        pdf.setFont(
+            "helvetica",
+            "normal"
+        );
+        pdf.setFontSize(11);
+        const valueWidth = pdf.getTextWidth(valueText);
 
+        const startX = rightEdge - (labelWidth + valueWidth);
+
+        pdf.setFont(
+            "helvetica",
+            "bold"
+        );
+        pdf.setFontSize(10);
         pdf.setTextColor(
-            31,
-            58,
+            107,
+            104,
             95
         );
-
         pdf.text(
-            isTestemunho ?
-            "Ata da Reunião de Testemunho" :
-            "Ata da Reunião Sacramental",
-            margem,
+            labelText,
+            startX,
             y
         );
 
-        y += 8;
-
-
-        // ============================================================
-        // DATA
-        // ============================================================
-
-        campo(
-            "Data",
-            formatDate(entry.date)
+        pdf.setFont(
+            "helvetica",
+            "normal"
         );
+        pdf.setFontSize(11);
+        pdf.setTextColor(
+            42,
+            42,
+            40
+        );
+        pdf.text(
+            valueText,
+            startX + labelWidth,
+            y
+        );
+
+        y += 4;
 
 
         // ============================================================
@@ -838,62 +822,59 @@ db.collection(COLLECTION)
 
         secao("Abertura");
 
-
-        // ============================================================
+        // ------------------------------------------------------------
         // PRELÚDIO MUSICAL
-        // ============================================================
+        // ------------------------------------------------------------
 
-        subsecao("Prelúdio Musical");
-
+        pdf.setFont(
+            "helvetica",
+            "bold"
+        );
+        pdf.setFontSize(10);
+        pdf.setTextColor(
+            107,
+            104,
+            95
+        );
+        pdf.text(
+            "Prelúdio Musical",
+            margem,
+            y
+        );
+        y += 6;
 
         campo(
             "Dirigido por",
             entry.dirigidoPor
         );
-
-
         campo(
             "Presidido por",
             entry.presididoPor
         );
-
-
         campo(
             "Pianista",
             entry.pianista
         );
-
-
         campo(
             "Regente",
             entry.regente
         );
-
-
         campo(
             "Reconhecimentos",
             entry.reconhecimentos
         );
-
-
         campo(
             "Anúncios",
             entry.anuncios
         );
-
-
         campo(
             "Hino de abertura",
             entry.hinoAbertura
         );
-
-
         campo(
             "Oração de abertura",
             entry.oracaoAbertura
         );
-
-
         campo(
             "Hino sacramental",
             entry.hinoSacramental
@@ -913,6 +894,7 @@ db.collection(COLLECTION)
                 "Membros que prestaram testemunho",
                 entry.testemunhos
             );
+
 
         } else {
 
@@ -986,38 +968,51 @@ db.collection(COLLECTION)
         // RODAPÉ
         // ============================================================
 
-        pdf.setFont(
-            "helvetica",
-            "normal"
-        );
-
-        pdf.setFontSize(8);
-
-        pdf.setTextColor(
-            107,
-            104,
-            95
-        );
-
-        pdf.text(
-            "Agenda Sacramental · Ramo 5 · CTM",
-            margem,
-            alturaPagina - 9
-        );
-
-        pdf.text(
-            "Página 1 de 1",
-            192,
-            alturaPagina - 9,
-            {
-                align: "right"
-            }
-        );
+        const totalPaginas =
+            pdf.internal.getNumberOfPages();
 
 
-        // ============================================================
-        // SALVAR
-        // ============================================================
+        for (
+            let i = 1; i <= totalPaginas; i++
+        ) {
+
+            pdf.setPage(i);
+
+
+            pdf.setFont(
+                "helvetica",
+                "normal"
+            );
+
+            pdf.setFontSize(8);
+
+            pdf.setTextColor(
+                107,
+                104,
+                95
+            );
+
+
+            pdf.text(
+                "Agenda Sacramental · Ramo 5 · CTM",
+                margem,
+                287
+            );
+
+
+            pdf.text(
+                "Página " +
+                i +
+                " de " +
+                totalPaginas,
+                190,
+                287, {
+                    align: "right"
+                }
+            );
+
+        }
+
 
         pdf.save(
             "ata-reuniao-ramo5-" +
